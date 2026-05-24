@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VIRTUAL LAB FISIKA</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif;}
+body{background:linear-gradient(to bottom,#dff6ff,#caf0f8);min-height:100vh;}
+
+/* HEADER */
+.lab-header{background:linear-gradient(to right,#0077b6,#00b4d8);color:white;text-align:center;padding:24px;box-shadow:0 4px 10px rgba(0,0,0,0.2);}
+.lab-header h1{font-size:36px;letter-spacing:2px;}
+.lab-header p{font-size:14px;opacity:0.85;margin-top:6px;}
+
+/* MENU */
+.menu-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:24px;width:90%;margin:36px auto;}
+.menu-card{background:white;border-radius:20px;padding:30px 16px;text-align:center;cursor:pointer;transition:transform .3s,box-shadow .3s;box-shadow:0 4px 16px rgba(0,0,0,0.1);}
+.menu-card:hover{transform:translateY(-8px);box-shadow:0 10px 24px rgba(0,0,0,0.15);}
+.menu-card i{font-size:50px;color:#0077b6;margin-bottom:16px;}
+.menu-card h2{font-size:16px;color:#003566;margin-bottom:8px;}
+.menu-card p{font-size:13px;color:#555;line-height:1.6;}
+
+/* PAGE */
+.page{display:none;width:90%;margin:36px auto;background:white;border-radius:20px;padding:30px;box-shadow:0 5px 20px rgba(0,0,0,0.12);}
+.page h1{color:#0077b6;margin-bottom:18px;font-size:24px;}
+.page p{line-height:1.8;margin-bottom:12px;font-size:14px;text-align:justify;}
+.page h2{color:#003566;margin:16px 0 8px;font-size:17px;}
+.page h3{color:#0077b6;margin:14px 0 6px;font-size:15px;border-left:3px solid #0077b6;padding-left:10px;}
+.list-item{font-size:14px;color:#333;line-height:1.8;display:flex;gap:8px;margin-bottom:4px;}
+.list-item::before{content:"▸";color:#0077b6;flex-shrink:0;}
+
+/* BUTTONS */
+.btn{padding:11px 22px;border:none;border-radius:10px;cursor:pointer;font-size:14px;font-weight:bold;margin-top:14px;transition:.2s;}
+.btn-primary{background:#0077b6;color:white;}
+.btn-primary:hover{background:#005f99;}
+.btn-secondary{background:#e0f7fa;color:#003566;border:1px solid #90e0ef;}
+.btn-secondary:hover{background:#b2ebf2;}
+.btn-danger{background:#e0f7fa;color:#003566;border:1px solid #90e0ef;}
+.btn-danger:hover{background:#ffcdd2;color:#b71c1c;}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;}
+
+/* FORMULA BOX */
+.formula-box{background:#e0f7fa;border:1px solid #90e0ef;border-radius:12px;padding:16px;text-align:center;font-size:22px;font-weight:bold;color:#003566;margin:14px 0;}
+
+/* SIMULASI HIDROSTATIS */
+.sim-layout{display:flex;gap:28px;flex-wrap:wrap;margin-top:20px;align-items:flex-start;}
+#hydroCanvas{border-radius:14px;border:2px solid #90e0ef;display:block;}
+.sim-controls{flex:1;min-width:260px;}
+
+/* SIMULASI ARCHIMEDES */
+.archi-layout{display:flex;gap:28px;flex-wrap:wrap;margin-top:20px;align-items:flex-start;}
+#archiCanvas{border-radius:14px;border:2px solid #90e0ef;display:block;}
+.archi-controls{flex:1;min-width:260px;}
+
+/* CONTROL GROUPS */
+.ctrl-group{margin-bottom:18px;}
+.ctrl-label{font-size:12px;color:#555;margin-bottom:5px;display:block;font-weight:bold;}
+.slider-row{display:flex;align-items:center;gap:10px;}
+.slider-row input[type=range]{flex:1;accent-color:#0077b6;}
+.slider-val{font-size:13px;font-weight:bold;color:#0077b6;min-width:70px;text-align:right;}
+select,input[type=number]{width:100%;padding:9px 10px;border:1px solid #ccc;border-radius:8px;background:white;color:#333;font-size:14px;}
+select:focus,input[type=number]:focus{outline:none;border-color:#0077b6;}
+
+/* INFO BOXES */
+.info-rho{background:#e0f7fa;border:1px solid #90e0ef;border-radius:10px;padding:10px;font-size:14px;font-weight:bold;color:#003566;text-align:center;margin-bottom:14px;}
+.result-big{background:#dff6ff;border:1px solid #90e0ef;border-radius:12px;padding:14px;text-align:center;margin-bottom:12px;}
+.result-big .rlabel{font-size:12px;color:#555;margin-bottom:4px;}
+.result-big .rval{font-size:24px;font-weight:bold;color:#003566;}
+.result-big .runit{font-size:12px;color:#0077b6;}
+
+/* ARCHIMEDES RESULTS */
+.status-badge{display:inline-block;padding:8px 18px;border-radius:20px;font-size:14px;font-weight:bold;margin-bottom:12px;}
+.badge-float{background:#e0f7e0;color:#1b6b2f;}
+.badge-suspend{background:#ede7f6;color:#4527a0;}
+.badge-sink{background:#fce4ec;color:#b71c1c;}
+.archi-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0;}
+.archi-metric{background:#f8f9fa;border:1px solid #e0e0e0;border-radius:10px;padding:10px;}
+.archi-metric .mlabel{font-size:11px;color:#777;margin-bottom:3px;}
+.archi-metric .mval{font-size:15px;font-weight:bold;color:#003566;}
+.concl-box{background:#fff8e1;border:1px solid #ffcc80;border-radius:10px;padding:12px;font-size:13px;color:#7b4800;line-height:1.7;margin-top:8px;}
+
+/* RESPONSIVE */
+@media(max-width:650px){
+  .sim-layout,.archi-layout{flex-direction:column;}
+  #hydroCanvas,#archiCanvas{margin:0 auto;}
+  .lab-header h1{font-size:24px;}
+}
+</style>
+</head>
+<body>
+
+<div class="lab-header">
+  <h1><i class="fas fa-flask"></i> VIRTUAL LAB FISIKA</h1>
+  <p>Tekanan Hidrostatis &amp; Hukum Archimedes</p>
+</div>
+
+<!-- MENU -->
+<div id="menuUtama" class="menu-grid">
+  <div class="menu-card" onclick="buka('hidrostatis')">
+    <i class="fas fa-water"></i>
+    <h2>Tekanan Hidrostatis</h2>
+    <p>Materi &amp; rumus tekanan zat cair</p>
+  </div>
+  <div class="menu-card" onclick="buka('sop')">
+    <i class="fas fa-clipboard"></i>
+    <h2>SOP Praktikum</h2>
+    <p>Standar operasional prosedur</p>
+  </div>
+  <div class="menu-card" onclick="buka('praktikumHidro')">
+    <i class="fas fa-vial"></i>
+    <h2>Praktikum Hidrostatis</h2>
+    <p>Simulasi interaktif tekanan</p>
+  </div>
+  <div class="menu-card" onclick="buka('alat')">
+    <i class="fas fa-toolbox"></i>
+    <h2>Alat dan Bahan</h2>
+    <p>Daftar peralatan praktikum</p>
+  </div>
+  <div class="menu-card" onclick="buka('peraga')">
+    <i class="fas fa-flask"></i>
+    <h2>Alat Peraga</h2>
+    <p>Contoh alat peraga sederhana</p>
+  </div>
+  <div class="menu-card" onclick="buka('archimedes')">
+    <i class="fas fa-ship"></i>
+    <h2>Hukum Archimedes</h2>
+    <p>Materi gaya apung &amp; buoyancy</p>
+  </div>
+  <div class="menu-card" onclick="buka('praktikumArchi')">
+    <i class="fas fa-droplet"></i>
+    <h2>Praktikum Archimedes</h2>
+    <p>Simulasi terapung &amp; tenggelam</p>
+  </div>
+  <div class="menu-card" onclick="buka('tentang')">
+    <i class="fas fa-user"></i>
+    <h2>Tentang</h2>
+    <p>Informasi pembuat website</p>
+  </div>
+</div>
+
+<!-- HALAMAN HIDROSTATIS -->
+<div id="hidrostatis" class="page">
+  <h1>Tekanan Hidrostatis</h1>
+  <h3>Pengertian</h3>
+  <p>Tekanan hidrostatis adalah tekanan yang diberikan oleh zat cair pada suatu titik akibat berat kolom fluida di atasnya. Tekanan ini bekerja ke segala arah dan semakin besar seiring bertambahnya kedalaman.</p>
+  <h3>Rumus Tekanan Hidrostatis</h3>
+  <div class="formula-box">P = &rho; &times; g &times; h</div>
+  <div class="list-item">P = Tekanan hidrostatis (Pascal / Pa)</div>
+  <div class="list-item">&rho; (rho) = Massa jenis fluida (kg/m&sup3;)</div>
+  <div class="list-item">g = Percepatan gravitasi (m/s&sup2;), &asymp; 9,8 atau 10 m/s&sup2;</div>
+  <div class="list-item">h = Kedalaman dari permukaan fluida (meter)</div>
+  <h3>Hukum Pokok Hidrostatika</h3>
+  <p>Semua titik pada kedalaman yang sama dalam fluida yang terhubung memiliki tekanan yang sama, terlepas dari bentuk wadahnya.</p>
+  <h3>Contoh dalam Kehidupan</h3>
+  <div class="list-item">Dinding bendungan dibuat lebih tebal di bagian bawah</div>
+  <div class="list-item">Telinga terasa sakit saat menyelam lebih dalam</div>
+  <div class="list-item">Tekanan air PDAM berbeda berdasarkan ketinggian wilayah</div>
+  <div class="btn-row">
+    <button class="btn btn-secondary" onclick="kembali()">&#8592; Kembali</button>
+  </div>
+</div>
+
+<!-- SOP -->
+<div id="sop" class="page">
+  <h1>SOP Praktikum</h1>
+  <h3>Tujuan Praktikum</h3>
+  <p>Memahami hubungan antara kedalaman, massa jenis fluida, dan tekanan hidrostatis; serta membuktikan prinsip apung, melayang, dan tenggelam pada Hukum Archimedes.</p>
+  <h3>Langkah Kerja</h3>
+  <div class="list-item">Baca materi terlebih dahulu sebelum memulai praktikum</div>
+  <div class="list-item">Buka halaman Praktikum Hidrostatis atau Praktikum Archimedes</div>
+  <div class="list-item">Atur parameter input (kedalaman, jenis fluida, massa jenis benda)</div>
+  <div class="list-item">Amati perubahan simulasi secara real-time</div>
+  <div class="list-item">Klik tombol Hitung untuk mendapatkan hasil kalkulasi</div>
+  <div class="list-item">Catat data hasil percobaan ke dalam tabel pengamatan</div>
+  <div class="list-item">Bandingkan berbagai kondisi dan buat kesimpulan</div>
+  <h3>Catatan Keselamatan</h3>
+  <div class="list-item">Ini adalah lab virtual &mdash; aman untuk semua percobaan</div>
+  <div class="list-item">Ulangi percobaan sebanyak yang diperlukan</div>
+  <div class="list-item">Catat hasil dengan teliti untuk laporan praktikum</div>
+  <div class="btn-row">
+    <button class="btn btn-secondary" onclick="kembali()">&#8592; Kembali</button>
+  </div>
+</div>
+
+<!-- PRAKTIKUM HIDROSTATIS -->
+<div id="praktikumHidro" class="page">
+  <h1>Praktikum Tekanan Hidrostatis</h1>
+  <div class="sim-layout">
+    <div>
+      <canvas id="hydroCanvas" width="210" height="400"></canvas>
+    </div>
+    <div class="sim-controls">
+      <div class="ctrl-group">
+        <label class="ctrl-label">Kedalaman titik ukur (h)</label>
+        <div class="slider-row">
+          <input type="range" id="depthSlider" min="0.5" max="10" step="0.5" value="3" oninput="updateHydro()">
+          <span class="slider-val" id="depthVal">3.0 m</span>
+        </div>
+      </div>
+      <div class="ctrl-group">
+        <label class="ctrl-label">Jenis Zat Cair</label>
+        <select id="liquidSelect" onchange="updateHydro()">
+          <option value="1000">Air tawar (1000 kg/m&sup3;)</option>
+          <option value="1025">Air laut (1025 kg/m&sup3;)</option>
+          <option value="900">Minyak / Oli (900 kg/m&sup3;)</option>
+          <option value="800">Bensin (800 kg/m&sup3;)</option>
+          <option value="13600">Raksa / Merkuri (13600 kg/m&sup3;)</option>
+        </select>
+      </div>
+      <div class="info-rho" id="rhoInfo">&rho; = 1000 kg/m&sup3;</div>
+      <div class="ctrl-group">
+        <label class="ctrl-label">Percepatan gravitasi g (m/s&sup2;)</label>
+        <div class="slider-row">
+          <input type="range" id="gSlider" min="1" max="30" step="0.1" value="9.8" oninput="updateHydro()">
+          <span class="slider-val" id="gVal">9.8 m/s&sup2;</span>
+        </div>
+      </div>
+      <div class="result-big">
+        <div class="rlabel">Tekanan Hidrostatis (P = &rho;gh)</div>
+        <div class="rval" id="pressureResult">— Pa</div>
+        <div class="runit">Pascal</div>
+      </div>
+      <div class="result-big">
+        <div class="rlabel">Tekanan Total (P<sub>atm</sub> + &rho;gh)</div>
+        <div class="rval" id="pressureTotal">— Pa</div>
+        <div class="runit">Pascal &nbsp;|&nbsp; P<sub>atm</sub> = 101.325 Pa</div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="hitungHydro()">&#9654; Hitung</button>
+        <button class="btn btn-danger" onclick="resetHydro()">&#8635; Reset</button>
+        <button class="btn btn-secondary" onclick="kembali()">&#8592; Kembali</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ALAT DAN BAHAN -->
+<div id="alat" class="page">
+  <h1>Alat dan Bahan</h1>
+  <h3>Alat Praktikum Hidrostatis</h3>
+  <div class="list-item">Tabung/bejana transparan dengan skala kedalaman</div>
+  <div class="list-item">Manometer tekanan (U-tube atau digital)</div>
+  <div class="list-item">Selang penghubung dan probe sensor</div>
+  <div class="list-item">Penggaris dan mistar ukur</div>
+  <h3>Bahan Fluida</h3>
+  <div class="list-item">Air tawar (&rho; &asymp; 1000 kg/m&sup3;)</div>
+  <div class="list-item">Air laut atau larutan garam (&rho; &asymp; 1025 kg/m&sup3;)</div>
+  <div class="list-item">Minyak goreng atau oli (&rho; &asymp; 900 kg/m&sup3;)</div>
+  <h3>Alat Praktikum Archimedes</h3>
+  <div class="list-item">Neraca pegas (dinamometer)</div>
+  <div class="list-item">Gelas ukur besar (overflow can)</div>
+  <div class="list-item">Benda dengan berbagai massa jenis (kayu, plastik, logam, batu)</div>
+  <div class="list-item">Tali pengikat tipis</div>
+  <div class="btn-row">
+    <button class="btn btn-secondary" onclick="kembali()">&#8592; Kembali</button>
+  </div>
+</div>
+
+<!-- PERAGA -->
+<div id="peraga" class="page">
+  <h1>Alat Peraga Sederhana</h1>
+  <h3>Botol Berlubang (Demonstrasi Tekanan Hidrostatis)</h3>
+  <p>Ambil botol plastik bekas, buat tiga lubang di sisi botol pada ketinggian berbeda (bawah, tengah, atas). Isi dengan air, lalu amati pancaran air dari setiap lubang. Pancaran terkuat (terjauh) berasal dari lubang paling bawah &mdash; ini membuktikan tekanan hidrostatis bertambah seiring kedalaman.</p>
+  <h3>Telur dalam Larutan Garam (Demonstrasi Archimedes)</h3>
+  <p>Masukkan telur mentah ke gelas berisi air tawar &mdash; telur tenggelam. Tambahkan garam secara perlahan sambil diaduk. Saat massa jenis larutan melebihi massa jenis telur, telur akan melayang lalu terapung. Ini membuktikan benda terapung ketika &rho;<sub>benda</sub> &lt; &rho;<sub>fluida</sub>.</p>
+  <h3>Perahu dari Plastisin</h3>
+  <p>Plastisin berbentuk bola akan tenggelam. Saat dibentuk seperti mangkuk/perahu dengan dasar lebar, ia terapung. Ini menunjukkan bahwa volume fluida yang dipindahkan yang menentukan gaya apung, bukan hanya massa benda.</p>
+  <div class="btn-row">
+    <button class="btn btn-secondary" onclick="kembali()">&#8592; Kembali</button>
+  </div>
+</div>
+
+<!-- MATERI ARCHIMEDES -->
+<div id="archimedes" class="page">
+  <h1>Hukum Archimedes</h1>
+  <h3>Bunyi Hukum Archimedes</h3>
+  <p>"Setiap benda yang tercelup sebagian atau seluruhnya ke dalam fluida akan mendapatkan gaya ke atas (gaya apung) yang besarnya sama dengan berat fluida yang dipindahkan oleh benda tersebut."</p>
+  <h3>Rumus Gaya Apung</h3>
+  <div class="formula-box">F<sub>A</sub> = &rho;<sub>f</sub> &times; g &times; V<sub>tercelup</sub></div>
+  <div class="list-item">F<sub>A</sub> = Gaya Archimedes / gaya apung (Newton)</div>
+  <div class="list-item">&rho;<sub>f</sub> = Massa jenis fluida (kg/m&sup3;)</div>
+  <div class="list-item">g = Percepatan gravitasi (m/s&sup2;)</div>
+  <div class="list-item">V<sub>tercelup</sub> = Volume benda yang tercelup (m&sup3;)</div>
+  <h3>Kondisi Benda dalam Fluida</h3>
+  <div class="list-item"><b>Terapung:</b> &rho;<sub>benda</sub> &lt; &rho;<sub>fluida</sub> &rarr; F<sub>A</sub> &gt; W (sebagian benda di atas permukaan)</div>
+  <div class="list-item"><b>Melayang:</b> &rho;<sub>benda</sub> = &rho;<sub>fluida</sub> &rarr; F<sub>A</sub> = W (benda di dalam fluida, seimbang)</div>
+  <div class="list-item"><b>Tenggelam:</b> &rho;<sub>benda</sub> &gt; &rho;<sub>fluida</sub> &rarr; F<sub>A</sub> &lt; W (benda di dasar)</div>
+  <div class="btn-row">
+    <button class="btn btn-secondary" onclick="kembali()">&#8592; Kembali</button>
+  </div>
+</div>
+
+<!-- PRAKTIKUM ARCHIMEDES -->
+<div id="praktikumArchi" class="page">
+  <h1>Praktikum Hukum Archimedes</h1>
+  <div class="archi-layout">
+    <div>
+      <canvas id="archiCanvas" width="210" height="400"></canvas>
+    </div>
+    <div class="archi-controls">
+      <div class="ctrl-group">
+        <label class="ctrl-label">Massa jenis benda (&rho;<sub>benda</sub>)</label>
+        <div class="slider-row">
+          <input type="range" id="rhoB" min="100" max="3000" step="10" value="800" oninput="updateArchi()">
+          <span class="slider-val" id="rhoBVal">800 kg/m&sup3;</span>
+        </div>
+        <span style="font-size:11px;color:#777;">Kayu ~600 | Plastik ~950 | Besi ~7800 kg/m&sup3;</span>
+      </div>
+      <div class="ctrl-group">
+        <label class="ctrl-label">Jenis Fluida</label>
+        <select id="fluidaSelect" onchange="updateArchi()">
+          <option value="1000">Air tawar (1000 kg/m&sup3;)</option>
+          <option value="1025">Air laut (1025 kg/m&sup3;)</option>
+          <option value="900">Minyak (900 kg/m&sup3;)</option>
+          <option value="800">Bensin (800 kg/m&sup3;)</option>
+          <option value="1260">Gliserin (1260 kg/m&sup3;)</option>
+        </select>
+      </div>
+      <div class="ctrl-group">
+        <label class="ctrl-label">Volume benda (V)</label>
+        <div class="slider-row">
+          <input type="range" id="volB" min="100" max="5000" step="50" value="1000" oninput="updateArchi()">
+          <span class="slider-val" id="volBVal">1000 cm&sup3;</span>
+        </div>
+      </div>
+      <div id="archiStatusBadge" class="status-badge badge-float">&#9899; Terapung</div>
+      <div class="archi-grid">
+        <div class="archi-metric"><div class="mlabel">Berat benda (W)</div><div class="mval" id="beratBenda">—</div></div>
+        <div class="archi-metric"><div class="mlabel">Gaya apung (F<sub>A</sub>)</div><div class="mval" id="gayaApung">—</div></div>
+        <div class="archi-metric"><div class="mlabel">Berat semu dalam fluida</div><div class="mval" id="beratSemu">—</div></div>
+        <div class="archi-metric"><div class="mlabel">&rho; benda / &rho; fluida</div><div class="mval" id="rasioRho">—</div></div>
+      </div>
+      <div class="concl-box" id="archiKesimpulan">Gerakkan slider untuk melihat hasil simulasi.</div>
+      <div class="btn-row">
+        <button class="btn btn-secondary" onclick="kembali()">&#8592; Kembali</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TENTANG -->
+<div id="tentang" class="page">
+  <h1>Tentang Website</h1>
+  <p>Virtual Lab Fisika ini dibuat sebagai media pembelajaran interaktif untuk materi Fluida Statis, mencakup Tekanan Hidrostatis dan Hukum Archimedes.</p>
+  <h3>Tim Pembuat</h3>
+  <div class="list-item">Ade Ayu</div>
+  <div class="list-item">Samuel Baringbing</div>
+  <div class="list-item">Septi Maria Gultom</div>
+  <div class="list-item">Septya Yulandari</div>
+  <div class="btn-row">
+    <button class="btn btn-secondary" onclick="kembali()">&#8592; Kembali</button>
+  </div>
+</div>
+
+<script>
+/* ===================== NAVIGASI ===================== */
+var hydroAnim = null;
+var archiAnim = null;
+
+function buka(id) {
+  if (hydroAnim) { cancelAnimationFrame(hydroAnim); hydroAnim = null; }
+  if (archiAnim) { cancelAnimationFrame(archiAnim); archiAnim = null; }
+  document.getElementById('menuUtama').style.display = 'none';
+  document.querySelectorAll('.page').forEach(function(p){ p.style.display = 'none'; });
+  document.getElementById(id).style.display = 'block';
+  if (id === 'praktikumHidro') { updateHydro(); hydroCalced = false; drawHydroLoop(); }
+  if (id === 'praktikumArchi') { updateArchi(); drawArchiLoop(); }
+}
+
+function kembali() {
+  if (hydroAnim) { cancelAnimationFrame(hydroAnim); hydroAnim = null; }
+  if (archiAnim) { cancelAnimationFrame(archiAnim); archiAnim = null; }
+  document.querySelectorAll('.page').forEach(function(p){ p.style.display = 'none'; });
+  document.getElementById('menuUtama').style.display = 'grid';
+}
+
+/* ===================== HIDROSTATIS ===================== */
+var hydroCalced = false;
+var waveH = 0;
+
+var liquidColors = {
+  '1000': ['#1a7abf', '#5eb8f5'],
+  '1025': ['#1155a0', '#4a90d9'],
+  '900':  ['#b8860b', '#f0c040'],
+  '800':  ['#cc7a00', '#f5a623'],
+  '13600':['#666',    '#aaa']
+};
+
+function updateHydro() {
+  var h = parseFloat(document.getElementById('depthSlider').value);
+  var g = parseFloat(document.getElementById('gSlider').value);
+  document.getElementById('depthVal').textContent = h.toFixed(1) + ' m';
+  document.getElementById('gVal').textContent = g.toFixed(1) + ' m/s\u00B2';
+  var sel = document.getElementById('liquidSelect');
+  document.getElementById('rhoInfo').textContent = '\u03C1 = ' + Number(sel.value).toLocaleString('id-ID') + ' kg/m\u00B3';
+  hydroCalced = false;
+  document.getElementById('pressureResult').textContent = '— Pa';
+  document.getElementById('pressureTotal').textContent = '— Pa';
+}
+
+function hitungHydro() {
+  var h   = parseFloat(document.getElementById('depthSlider').value);
+  var rho = parseFloat(document.getElementById('liquidSelect').value);
+  var g   = parseFloat(document.getElementById('gSlider').value);
+  var P   = rho * g * h;
+  var P0  = 101325;
+  document.getElementById('pressureResult').textContent = P.toLocaleString('id-ID', {maximumFractionDigits: 0}) + ' Pa';
+  document.getElementById('pressureTotal').textContent  = (P + P0).toLocaleString('id-ID', {maximumFractionDigits: 0}) + ' Pa';
+  hydroCalced = true;
+}
+
+function resetHydro() {
+  document.getElementById('depthSlider').value = 3;
+  document.getElementById('gSlider').value = 9.8;
+  document.getElementById('liquidSelect').value = 1000;
+  hydroCalced = false;
+  updateHydro();
+}
+
+function drawHydroLoop() {
+  var canvas = document.getElementById('hydroCanvas');
+  if (!canvas) return;
+  var ctx = canvas.getContext('2d');
+  var CW = canvas.width, CH = canvas.height;
+
+  waveH = (waveH + 0.7) % CW;
+
+  var h       = parseFloat(document.getElementById('depthSlider').value);
+  var maxH    = 10;
+  var tankL   = 28, tankR = CW - 28, tankW = tankR - tankL;
+  var tankTop = 28, tankBot = CH - 18, tankH = tankBot - tankTop;
+  var surfY   = tankTop + 10;
+  var pointFr = h / maxH;
+  var pointY  = surfY + (tankBot - surfY) * pointFr;
+
+  var rhoKey = document.getElementById('liquidSelect').value;
+  var cols   = liquidColors[rhoKey] || ['#1a7abf', '#5eb8f5'];
+
+  ctx.clearRect(0, 0, CW, CH);
+
+  /* tank background */
+  ctx.fillStyle = '#eef4fa';
+  ctx.beginPath(); ctx.roundRect(tankL, tankTop, tankW, tankH, 8); ctx.fill();
+
+  /* water fill */
+  var grd = ctx.createLinearGradient(0, surfY, 0, tankBot);
+  grd.addColorStop(0, cols[1]);
+  grd.addColorStop(1, cols[0]);
+  ctx.save();
+  ctx.beginPath(); ctx.roundRect(tankL, surfY, tankW, tankBot - surfY, 6); ctx.clip();
+  ctx.fillStyle = grd;
+  ctx.fillRect(tankL, surfY, tankW, tankBot - surfY);
+
+  /* wave animation */
+  ctx.fillStyle = 'rgba(255,255,255,0.28)';
+  ctx.beginPath();
+  ctx.moveTo(tankL, surfY + 5);
+  for (var x = tankL; x <= tankR; x += 2) {
+    var wy = surfY + 5 + Math.sin((x - waveH) * 0.09) * 4 + Math.sin((x + waveH) * 0.14) * 2;
+    ctx.lineTo(x, wy);
+  }
+  ctx.lineTo(tankR, surfY); ctx.lineTo(tankL, surfY); ctx.closePath(); ctx.fill();
+  ctx.restore();
+
+  /* depth scale lines */
+  for (var i = 0; i <= 10; i += 2) {
+    var sy = surfY + (tankBot - surfY) * (i / 10);
+    ctx.strokeStyle = 'rgba(255,255,255,0.45)';
+    ctx.lineWidth = 0.8;
+    ctx.beginPath(); ctx.moveTo(tankL + 2, sy); ctx.lineTo(tankR - 2, sy); ctx.stroke();
+    ctx.fillStyle = 'rgba(255,255,255,0.85)';
+    ctx.font = '10px Arial';
+    ctx.fillText(i + 'm', tankL + 4, sy - 2);
+  }
+
+  /* tank border */
+  ctx.strokeStyle = '#0077b6'; ctx.lineWidth = 2.5;
+  ctx.beginPath(); ctx.roundRect(tankL, tankTop, tankW, tankH, 8); ctx.stroke();
+
+  /* dashed line at measurement point */
+  ctx.strokeStyle = 'rgba(220,50,50,0.55)'; ctx.lineWidth = 1; ctx.setLineDash([4, 4]);
+  ctx.beginPath(); ctx.moveTo(tankL, pointY); ctx.lineTo(tankR, pointY); ctx.stroke();
+  ctx.setLineDash([]);
+
+  /* depth arrow on right side */
+  var ax = tankR - 12;
+  ctx.strokeStyle = 'rgba(255,255,255,0.8)'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(ax, surfY + 6); ctx.lineTo(ax, pointY - 10); ctx.stroke();
+  ctx.fillStyle = 'rgba(255,255,255,0.8)';
+  ctx.beginPath(); ctx.moveTo(ax - 4, pointY - 12); ctx.lineTo(ax, pointY - 2); ctx.lineTo(ax + 4, pointY - 12); ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,0.9)'; ctx.font = 'bold 10px Arial'; ctx.textAlign = 'center';
+  ctx.fillText('h=' + h + 'm', ax, surfY + (pointY - surfY) / 2 + 4);
+  ctx.textAlign = 'left';
+
+  /* measurement point dot */
+  ctx.shadowColor = 'rgba(200,0,0,0.5)'; ctx.shadowBlur = 10;
+  ctx.fillStyle = '#e74c3c';
+  ctx.beginPath(); ctx.arc(CW / 2, pointY, 10, 0, Math.PI * 2); ctx.fill();
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = 'white';
+  ctx.beginPath(); ctx.arc(CW / 2, pointY, 4, 0, Math.PI * 2); ctx.fill();
+
+  /* pressure label on canvas if calculated */
+  if (hydroCalced) {
+    var rho = parseFloat(document.getElementById('liquidSelect').value);
+    var g   = parseFloat(document.getElementById('gSlider').value);
+    var P   = (rho * g * h).toFixed(0);
+    var labelY = (pointY + 16 + 22 < tankBot) ? pointY + 16 : pointY - 28;
+    ctx.fillStyle = 'rgba(0,55,100,0.85)';
+    ctx.beginPath(); ctx.roundRect(tankL + 6, labelY, tankW - 12, 22, 4); ctx.fill();
+    ctx.fillStyle = 'white'; ctx.font = 'bold 11px Arial'; ctx.textAlign = 'center';
+    ctx.fillText('P = ' + Number(P).toLocaleString('id-ID') + ' Pa', CW / 2, labelY + 15);
+    ctx.textAlign = 'left';
+  }
+
+  /* surface label */
+  ctx.fillStyle = 'rgba(0,55,100,0.75)'; ctx.font = '10px Arial';
+  ctx.fillText('Permukaan', tankL + 4, surfY - 2);
+
+  hydroAnim = requestAnimationFrame(drawHydroLoop);
+}
+
+/* ===================== ARCHIMEDES ===================== */
+var waveA = 0;
+var currentBY = 200;
+var targetBY  = 200;
+var currentStatus = 'float';
+
+var fluidaCols = {
+  '1000': ['#1a7abf', '#5eb8f5'],
+  '1025': ['#1155a0', '#4a90d9'],
+  '900':  ['#b8860b', '#f0c040'],
+  '800':  ['#cc7a00', '#f5a623'],
+  '1260': ['#6a1f99', '#c080e0']
+};
+
+function updateArchi() {
+  var rhoB  = parseFloat(document.getElementById('rhoB').value);
+  var rhoF  = parseFloat(document.getElementById('fluidaSelect').value);
+  var Vcm3  = parseFloat(document.getElementById('volB').value);
+
+  document.getElementById('rhoBVal').textContent = rhoB + ' kg/m\u00B3';
+  document.getElementById('volBVal').textContent = Vcm3 + ' cm\u00B3';
+
+  var g      = 9.8;
+  var Vm3    = Vcm3 / 1e6;
+  var massa  = rhoB * Vm3;
+  var W      = massa * g;
+  var FA     = rhoF * g * Vm3;
+  var semu   = W - FA;
+
+  var CH = 400;
+  var tankTop = 28, tankBot = CH - 18, tankH = tankBot - tankTop;
+  var waterLvl = tankTop + tankH * 0.18;
+  var bH = 52;
+
+  if (rhoB < rhoF) {
+    currentStatus = 'float';
+    var fraksi = rhoB / rhoF;
+    targetBY = waterLvl - bH / 2 + bH * fraksi;
+    document.getElementById('archiStatusBadge').className = 'status-badge badge-float';
+    document.getElementById('archiStatusBadge').innerHTML = '&#9899; Terapung &mdash; &rho; benda &lt; &rho; fluida';
+    var pctAtas = ((1 - fraksi) * 100).toFixed(1);
+    document.getElementById('archiKesimpulan').innerHTML =
+      'Gaya apung F<sub>A</sub> = ' + FA.toFixed(3) + ' N &gt; Berat W = ' + W.toFixed(3) + ' N.<br>' +
+      'Benda terapung dengan <b>' + pctAtas + '%</b> volume di atas permukaan.';
+  } else if (rhoB === rhoF) {
+    currentStatus = 'suspend';
+    targetBY = waterLvl + tankH * 0.35;
+    document.getElementById('archiStatusBadge').className = 'status-badge badge-suspend';
+    document.getElementById('archiStatusBadge').innerHTML = '&#9899; Melayang &mdash; &rho; benda = &rho; fluida';
+    document.getElementById('archiKesimpulan').innerHTML =
+      'Gaya apung F<sub>A</sub> = ' + FA.toFixed(3) + ' N tepat sama dengan berat W = ' + W.toFixed(3) + ' N.<br>' +
+      'Benda melayang dalam keseimbangan di dalam fluida.';
+  } else {
+    currentStatus = 'sink';
+    targetBY = tankBot - bH / 2 - 8;
+    document.getElementById('archiStatusBadge').className = 'status-badge badge-sink';
+    document.getElementById('archiStatusBadge').innerHTML = '&#9899; Tenggelam &mdash; &rho; benda &gt; &rho; fluida';
+    document.getElementById('archiKesimpulan').innerHTML =
+      'Berat W = ' + W.toFixed(3) + ' N &gt; Gaya apung F<sub>A</sub> = ' + FA.toFixed(3) + ' N.<br>' +
+      'Benda tenggelam ke dasar wadah.';
+  }
+
+  document.getElementById('beratBenda').textContent = W.toFixed(3) + ' N';
+  document.getElementById('gayaApung').textContent  = FA.toFixed(3) + ' N';
+  document.getElementById('beratSemu').textContent  = (semu >= 0 ? '+' : '') + semu.toFixed(3) + ' N';
+  document.getElementById('rasioRho').textContent   = (rhoB / rhoF).toFixed(3);
+}
+
+function drawArchiLoop() {
+  var canvas = document.getElementById('archiCanvas');
+  if (!canvas) return;
+  var ctx = canvas.getContext('2d');
+  var CW = canvas.width, CH = canvas.height;
+
+  waveA = (waveA + 0.55) % CW;
+  currentBY += (targetBY - currentBY) * 0.045;
+
+  var tankL = 20, tankR = CW - 20, tankW = tankR - tankL;
+  var tankTop = 28, tankBot = CH - 18, tankH = tankBot - tankTop;
+  var waterLvl = tankTop + tankH * 0.18;
+  var bW = 62, bH = 52;
+
+  var rhoKey = document.getElementById('fluidaSelect').value;
+  var cols   = fluidaCols[rhoKey] || ['#1a7abf', '#5eb8f5'];
+
+  ctx.clearRect(0, 0, CW, CH);
+
+  /* tank bg */
+  ctx.fillStyle = '#eef4fa';
+  ctx.beginPath(); ctx.roundRect(tankL, tankTop, tankW, tankH, 8); ctx.fill();
+
+  /* water */
+  var grd = ctx.createLinearGradient(0, waterLvl, 0, tankBot);
+  grd.addColorStop(0, cols[1]);
+  grd.addColorStop(1, cols[0]);
+  ctx.save();
+  ctx.beginPath(); ctx.roundRect(tankL, waterLvl, tankW, tankBot - waterLvl, 6); ctx.clip();
+  ctx.fillStyle = grd;
+  ctx.fillRect(tankL, waterLvl, tankW, tankBot - waterLvl);
+  /* wave */
+  ctx.fillStyle = 'rgba(255,255,255,0.28)';
+  ctx.beginPath();
+  ctx.moveTo(tankL, waterLvl + 5);
+  for (var x = tankL; x <= tankR; x += 2) {
+    var wy = waterLvl + 5 + Math.sin((x - waveA) * 0.09) * 3.5 + Math.sin((x + waveA) * 0.15) * 2;
+    ctx.lineTo(x, wy);
+  }
+  ctx.lineTo(tankR, waterLvl); ctx.lineTo(tankL, waterLvl); ctx.closePath(); ctx.fill();
+  ctx.restore();
+
+  /* tank border */
+  ctx.strokeStyle = '#0077b6'; ctx.lineWidth = 2.5;
+  ctx.beginPath(); ctx.roundRect(tankL, tankTop, tankW, tankH, 8); ctx.stroke();
+
+  /* BENDA */
+  var cx = CW / 2, cy = currentBY;
+  var rhoB = parseFloat(document.getElementById('rhoB').value);
+
+  /* pick color by density */
+  var bendaColor;
+  if      (rhoB < 400)  bendaColor = '#66bb6a';
+  else if (rhoB < 700)  bendaColor = '#8bc34a';
+  else if (rhoB < 950)  bendaColor = '#ffa726';
+  else if (rhoB < 1100) bendaColor = '#ef5350';
+  else if (rhoB < 2500) bendaColor = '#78909c';
+  else                  bendaColor = '#455a64';
+
+  /* glow */
+  if      (currentStatus === 'float')   { ctx.shadowColor = 'rgba(30,160,100,0.55)'; ctx.shadowBlur = 14; }
+  else if (currentStatus === 'suspend') { ctx.shadowColor = 'rgba(83,74,200,0.55)';  ctx.shadowBlur = 14; }
+  else                                  { ctx.shadowColor = 'rgba(220,80,50,0.55)';  ctx.shadowBlur = 14; }
+
+  ctx.fillStyle = bendaColor;
+  ctx.beginPath(); ctx.roundRect(cx - bW / 2, cy - bH / 2, bW, bH, 7); ctx.fill();
+  ctx.shadowBlur = 0;
+
+  /* benda border */
+  ctx.strokeStyle = 'rgba(0,0,0,0.2)'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.roundRect(cx - bW / 2, cy - bH / 2, bW, bH, 7); ctx.stroke();
+
+  /* benda label */
+  ctx.fillStyle = 'white'; ctx.font = 'bold 10px Arial'; ctx.textAlign = 'center';
+  ctx.fillText('\u03C1=' + rhoB, cx, cy - 4);
+  ctx.fillText('kg/m\u00B3', cx, cy + 9);
+  ctx.textAlign = 'left';
+
+  /* force arrows */
+  if (currentStatus === 'float' || currentStatus === 'suspend') {
+    /* FA arrow (up, green) */
+    ctx.strokeStyle = '#27ae60'; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.moveTo(cx, cy - bH / 2 - 5); ctx.lineTo(cx, cy - bH / 2 - 26); ctx.stroke();
+    ctx.fillStyle = '#27ae60';
+    ctx.beginPath(); ctx.moveTo(cx - 6, cy - bH / 2 - 20); ctx.lineTo(cx, cy - bH / 2 - 32); ctx.lineTo(cx + 6, cy - bH / 2 - 20); ctx.fill();
+    ctx.fillStyle = '#27ae60'; ctx.font = 'bold 10px Arial';
+    ctx.fillText('FA', cx + 8, cy - bH / 2 - 18);
+  }
+  /* W arrow (down, red) */
+  ctx.strokeStyle = '#e74c3c'; ctx.lineWidth = 2.5;
+  ctx.beginPath(); ctx.moveTo(cx, cy + bH / 2 + 5); ctx.lineTo(cx, cy + bH / 2 + 26); ctx.stroke();
+  ctx.fillStyle = '#e74c3c';
+  ctx.beginPath(); ctx.moveTo(cx - 6, cy + bH / 2 + 20); ctx.lineTo(cx, cy + bH / 2 + 32); ctx.lineTo(cx + 6, cy + bH / 2 + 20); ctx.fill();
+  ctx.fillStyle = '#e74c3c'; ctx.font = 'bold 10px Arial';
+  ctx.fillText('W', cx + 8, cy + bH / 2 + 22);
+
+  /* surface label */
+  ctx.fillStyle = 'rgba(0,55,100,0.75)'; ctx.font = '10px Arial';
+  ctx.fillText('Permukaan fluida', tankL + 4, waterLvl - 3);
+
+  /* status pill on canvas */
+  var statusLabels = { float: 'Terapung', suspend: 'Melayang', sink: 'Tenggelam' };
+  var statusBg     = { float: 'rgba(30,150,90,0.88)', suspend: 'rgba(80,60,200,0.88)', sink: 'rgba(210,60,40,0.88)' };
+  ctx.fillStyle = statusBg[currentStatus] || '#555';
+  ctx.beginPath(); ctx.roundRect(tankL + 3, tankTop + 3, 68, 22, 4); ctx.fill();
+  ctx.fillStyle = 'white'; ctx.font = 'bold 11px Arial'; ctx.textAlign = 'center';
+  ctx.fillText(statusLabels[currentStatus] || '', tankL + 37, tankTop + 18);
+  ctx.textAlign = 'left';
+
+  archiAnim = requestAnimationFrame(drawArchiLoop);
+}
+
+/* init */
+updateHydro();
+updateArchi();
+</script>
+</body>
+</html>
